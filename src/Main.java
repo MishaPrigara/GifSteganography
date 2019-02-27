@@ -1,4 +1,4 @@
-import Decryptors.LSB;
+import Encryptors.LSB;
 
 import java.io.File;
 import java.io.IOException;
