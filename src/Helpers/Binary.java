@@ -7,9 +7,9 @@ public class Binary {
 
     public static byte[] toBitArray(byte n) {
         byte[] ans = new byte[8];
-        for(int val = 128, i = 0; val > 0; val /= 2, i++) {
-            if(val <= n) {
-                n -= val;
+        String s = String.format("%8s", Integer.toBinaryString(n & 0xFF)).replace(' ', '0');
+        for(int i = 0; i < ans.length; i++) {
+            if(s.charAt(i) == '1') {
                 ans[i] = 1;
             } else {
                 ans[i] = 0;
@@ -19,18 +19,18 @@ public class Binary {
     }
 
     public static byte toByte(byte[] arr) throws TypeConstraintException {
-        byte ans = 0;
-        if(arr.length > 8) {
-            throw new TypeConstraintException("Array length is too big.");
-        }
-        byte val = (byte)(1 << ( arr.length - 1 ));
 
-        for(int i = 0; i < arr.length; val /= 2, i++) {
+        String s = "";
+
+        for(int i = 0; i < arr.length; i++) {
             if(arr[i] == 1) {
-                ans += val;
+                s += '1';
+            } else {
+                s += '0';
             }
         }
-        return ans;
+
+        return Byte.parseByte(s, 2);
     }
 
 }
