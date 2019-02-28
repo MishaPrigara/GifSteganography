@@ -15,14 +15,14 @@ public class LSB {
     private void put (@NotNull byte[] curArray, int fpos) {
         for (int i = 0; i < curArray.length / 2; i++) {
             if (curArray[i * 2] == 1) {
-                bytes[fpos + i] |= (1 << 7);
+                bytes[fpos + i] |= (1);
             } else {
-                bytes[fpos + i] &= ~(1 << 7);
+                bytes[fpos + i] &= ~(1);
             }
             if (curArray[i * 2 + 1] == 1) {
-                bytes[fpos + i] |= (1 << 6);
+                bytes[fpos + i] |= (2);
             } else {
-                bytes[fpos + i] &= ~(1 << 6);
+                bytes[fpos + i] &= ~(2);
             }
         }
     }
@@ -30,9 +30,9 @@ public class LSB {
     private byte[] get(int fpos) {
         byte[] ans = new byte[8];
         for (int i = 0; i < 4; i++) {
-            ans[i * 2] = (byte)(bytes[fpos + i] & (1 << 7));
+            ans[i * 2] = (byte)(bytes[fpos + i] & (1));
             if(ans[i * 2] != 0) ans[i * 2] = 1;
-            ans[i * 2 + 1] = (byte)(bytes[fpos + i] & (1 << 6));
+            ans[i * 2 + 1] = (byte)(bytes[fpos + i] & (2));
             if(ans[i * 2 + 1] != 0) ans[i * 2 + 1] = 1;
         }
         return ans;
@@ -96,8 +96,8 @@ public class LSB {
         maxLength *= 4;
 
         for (; curByte - 13 < maxLength; curByte++) {
-            bytes[curByte] &= ~(1 << 7);
-            bytes[curByte] &= ~(1 << 6);
+            bytes[curByte] &= ~(1);
+            bytes[curByte] &= ~(2);
         }
 
         OutputStream os = new FileOutputStream(out);
