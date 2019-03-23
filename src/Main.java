@@ -1,5 +1,6 @@
 import Encryptors.ExtendedPalette;
 import Encryptors.LSB;
+import Helpers.Binary;
 import Helpers.DecryptException;
 import Helpers.EncryptException;
 
@@ -10,8 +11,9 @@ public class Main {
 
     private static LSB lsb = new LSB();
     private static ExtendedPalette extendedPalette = new ExtendedPalette();
+
     public static void main(String[] args) throws IOException {
-        tryEP("aloprivet");
+        tryEP("lopata_pes");
     }
 
     private static void tryLSB(String text) {
@@ -43,6 +45,18 @@ public class Main {
         } catch (EncryptException err) {
             System.out.println("Encryption failed: " + err);
         }
+
+        text = "Failed";
+
+        try {
+            text = extendedPalette.Decrypt(new File("/home/mishaprigara/Downloads/test.gif"), (byte)1);
+        } catch (IOException err) {
+            System.out.println("Something's wrong with input: " + err);
+        } catch (DecryptException err) {
+            System.out.println("Decryption failed: " + err);
+        }
+
+        System.out.println(text);
     }
 
 }
