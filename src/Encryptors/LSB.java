@@ -3,7 +3,8 @@ package Encryptors;
 import Helpers.Binary;
 import Helpers.DecryptException;
 import Helpers.EncryptException;
-import org.jetbrains.annotations.NotNull;
+import com.sun.istack.internal.NotNull;
+
 
 import java.io.*;
 import java.util.Arrays;
@@ -38,8 +39,7 @@ public class LSB {
         return ans;
     }
 
-
-    public void Encrypt (File in, File out, String text, byte key1, long key2) throws IOException, EncryptException {
+    public void Encrypt (File in, File out, String text, byte key1) throws IOException, EncryptException {
         if (!in.isFile()) {
             throw new IOException("No input file");
         }
@@ -51,9 +51,6 @@ public class LSB {
         }
         if (key1 < 0) {
             throw new EncryptException("key1 is negative: " + key1);
-        }
-        if (key2 < 0) {
-            throw new EncryptException("key2 is negative: " + key2);
         }
 
         bytes = new byte[(int)in.length()];
@@ -71,7 +68,7 @@ public class LSB {
         int palleteSize = (1 << (bsize + 1));
         int maxLength = palleteSize * 3 / 4;
 
-        if (maxLength - 1 < text.length()) {
+        if ((maxLength - 1) < text.length()) {
             throw new EncryptException("Text is too long!");
         }
 
@@ -105,15 +102,12 @@ public class LSB {
         os.close();
     }
 
-    public String Decrypt(File in, byte key1, int key2) throws IOException, DecryptException {
+    public String Decrypt(File in, byte key1) throws IOException, DecryptException {
         if (!in.isFile()) {
             throw new IOException("No input file");
         }
         if (key1 < 0) {
             throw new DecryptException("key1 is negative: " + key1);
-        }
-        if (key2 < 0) {
-            throw new DecryptException("key2 is negative: " + key2);
         }
 
         bytes = new byte[(int)in.length()];
