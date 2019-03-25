@@ -44,7 +44,7 @@ public class LSB {
             throw new IOException("No input file");
         }
         if (!out.isFile()) {
-            throw new IOException("No output file");
+            out.createNewFile();
         }
         if (text == null) {
             throw new IOException("No input text");
