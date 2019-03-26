@@ -28,6 +28,7 @@ public class App extends JFrame {
 
     private String[] encMethods = {"Palette extension", "LSB"};
     private File leftFile;
+    private File rightFile;
     private File output = new File("temp.gif");
 
 
@@ -73,17 +74,19 @@ public class App extends JFrame {
             return false;
         }
 
-//        text = "Failed";
-//        try {
-//            text = lsb.Decrypt(new File("/home/mishaprigara/Downloads/kerker.gif"), (byte)1);
-//        } catch (DecryptException err) {
-//            System.out.println("Decryption failed: " + err);
-//        } catch (IOException err) {
-//            System.out.println("Something's wrong with input: " + err);
-//        }
-//        System.out.println(text);
-
         return true;
+    }
+
+    private String LSBDecrypt(File input) {
+        LSB lsb = new LSB();
+        String text = null;
+        try {
+            text = lsb.Decrypt(input, (byte)1);
+        } catch (DecryptException | IOException err) {
+            JOptionPane.showMessageDialog(null, err);
+        }
+
+        return text;
     }
 
     private boolean EPEncrypt(File input, String text) {
@@ -96,21 +99,25 @@ public class App extends JFrame {
         }
 
         return true;
-//        text = "Failed";
+    }
 
-//        try {
-//            text = extendedPalette.Decrypt(new File("/home/mishaprigara/Downloads/test.gif"), (byte)1);
-//        } catch (IOException err) {
-//            System.out.println("Something's wrong with input: " + err);
-//        } catch (DecryptException err) {
-//            System.out.println("Decryption failed: " + err);
-//        }
-//
-//        System.out.println(text);
+    private String EPDecrypt(File input) {
+        ExtendedPalette extendedPalette = new ExtendedPalette();
+        String text = null;
+
+        try {
+            text = extendedPalette.Decrypt(input, (byte)1);
+        } catch (IOException | DecryptException err) {
+            JOptionPane.showMessageDialog(null, err);
+        }
+
+        return text;
     }
 
     private void createUIComponents() {
+
         choosedEncMethod = new JComboBox(encMethods);
+        choosedDecMethod = new JComboBox(encMethods);
     }
 
     private void encryptButtonActionPerformed(ActionEvent e) {
@@ -157,14 +164,20 @@ public class App extends JFrame {
         Choose_right = new JButton();
         rightChooserLabel = new JLabel();
         decryptButton = new JButton();
+        scrollPane1 = new JScrollPane();
+        resultArea = new JTextArea();
+        label1 = new JLabel();
+        label2 = new JLabel();
 
         //======== this ========
         setResizable(false);
+        setFont(new Font("Dialog", Font.ITALIC, 12));
         Container contentPane = getContentPane();
         contentPane.setLayout(null);
 
         //---- Choose_left ----
         Choose_left.setText("Choose file");
+        Choose_left.addActionListener(e -> Choose_leftActionPerformed(e));
         contentPane.add(Choose_left);
         Choose_left.setBounds(125, 50, Choose_left.getPreferredSize().width, 25);
 
@@ -174,7 +187,7 @@ public class App extends JFrame {
         contentPane.add(leftChooserLabel);
         leftChooserLabel.setBounds(15, 55, 95, leftChooserLabel.getPreferredSize().height);
         contentPane.add(choosedEncMethod);
-        choosedEncMethod.setBounds(new Rectangle(new Point(10, 105), choosedEncMethod.getPreferredSize()));
+        choosedEncMethod.setBounds(10, 105, 215, choosedEncMethod.getPreferredSize().height);
 
         //======== scrollPaneLeft ========
         {
@@ -185,10 +198,7 @@ public class App extends JFrame {
 
         //---- encryptButton ----
         encryptButton.setText("Encrypt");
-        encryptButton.addActionListener(e -> {
-			encryptButtonActionPerformed(e);
-			encryptButtonActionPerformed(e);
-		});
+        encryptButton.addActionListener(e -> encryptButtonActionPerformed(e));
         contentPane.add(encryptButton);
         encryptButton.setBounds(70, 295, 100, encryptButton.getPreferredSize().height);
 
@@ -199,9 +209,9 @@ public class App extends JFrame {
 
         //---- Choose_right ----
         Choose_right.setText("Choose file");
-        Choose_right.addActionListener(e -> Choose_leftActionPerformed(e));
+        Choose_right.addActionListener(e -> Choose_rightActionPerformed(e));
         contentPane.add(Choose_right);
-        Choose_right.setBounds(415, 50, 103, 25);
+        Choose_right.setBounds(415, 50, Choose_right.getPreferredSize().width, 25);
 
         //---- rightChooserLabel ----
         rightChooserLabel.setText("Choose file");
@@ -211,12 +221,30 @@ public class App extends JFrame {
 
         //---- decryptButton ----
         decryptButton.setText("Decrypt");
-        decryptButton.addActionListener(e -> {
-			encryptButtonActionPerformed(e);
-			encryptButtonActionPerformed(e);
-		});
+        decryptButton.addActionListener(e -> decryptButtonActionPerformed(e));
         contentPane.add(decryptButton);
-        decryptButton.setBounds(340, 90, 100, 30);
+        decryptButton.setBounds(345, 150, 100, 30);
+        contentPane.add(choosedDecMethod);
+        choosedDecMethod.setBounds(285, 105, 215, choosedDecMethod.getPreferredSize().height);
+
+        //======== scrollPane1 ========
+        {
+            scrollPane1.setViewportView(resultArea);
+        }
+        contentPane.add(scrollPane1);
+        scrollPane1.setBounds(290, 200, 215, 130);
+
+        //---- label1 ----
+        label1.setText("Encrypt");
+        label1.setFont(label1.getFont().deriveFont(label1.getFont().getStyle() | Font.BOLD, label1.getFont().getSize() + 4f));
+        contentPane.add(label1);
+        label1.setBounds(new Rectangle(new Point(95, 15), label1.getPreferredSize()));
+
+        //---- label2 ----
+        label2.setText("Decrypt");
+        label2.setFont(label2.getFont().deriveFont(label2.getFont().getStyle() | Font.BOLD, label2.getFont().getSize() + 4f));
+        contentPane.add(label2);
+        label2.setBounds(365, 15, 80, 19);
 
         contentPane.setPreferredSize(new Dimension(540, 410));
         pack();
@@ -225,10 +253,31 @@ public class App extends JFrame {
     }
 
     private void Choose_rightActionPerformed(ActionEvent e) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Gifs", "gif"));
+
+        if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            rightFile = fileChooser.getSelectedFile();
+            String curText = rightFile.getName();
+            curText = stringShortener(curText);
+            rightChooserLabel.setText(curText);
+        } else {
+            rightFile = null;
+            rightChooserLabel.setText("Choose file");
+        }
     }
 
     private void decryptButtonActionPerformed(ActionEvent e) {
+        if(rightFile == null) {
+            JOptionPane.showMessageDialog(null, "No file is chosen!");
+            return;
+        }
 
+        if(choosedDecMethod.getSelectedItem().equals("LSB")) {
+            resultArea.setText(LSBDecrypt(rightFile));
+        } else {
+            resultArea.setText(EPDecrypt(rightFile));
+        }
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
@@ -243,5 +292,10 @@ public class App extends JFrame {
     private JButton Choose_right;
     private JLabel rightChooserLabel;
     private JButton decryptButton;
+    private JComboBox choosedDecMethod;
+    private JScrollPane scrollPane1;
+    private JTextArea resultArea;
+    private JLabel label1;
+    private JLabel label2;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }
