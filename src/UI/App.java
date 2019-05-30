@@ -2,6 +2,7 @@ package UI;
 
 import Encryptors.ExtendedPalette;
 import Encryptors.LSB;
+import Encryptors.Steganography;
 import Helpers.DecryptException;
 import Helpers.EncryptException;
 
@@ -29,7 +30,7 @@ public class App extends JFrame {
     private String[] encMethods = {"Palette extension", "LSB"};
     private File leftFile;
     private File rightFile;
-    private File output = new File("temp.gif");
+    private File output;
 
 
     private String stringShortener (String curText) {
@@ -52,11 +53,16 @@ public class App extends JFrame {
 
     private void Choose_leftActionPerformed(ActionEvent e) {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Gifs", "gif"));
 
         if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             leftFile = fileChooser.getSelectedFile();
-            String curText = leftFile.getName();
+            String curText = leftFile.getName().toLowerCase();
+            if(!curText.endsWith(".gif") && !curText.endsWith(".png")
+                    && !curText.endsWith(".jpg") && !curText.endsWith(".jpeg")) {
+                leftFile = null;
+                leftChooserLabel.setText("Choose file");
+                return;
+            }
             curText = stringShortener(curText);
             leftChooserLabel.setText(curText);
         } else {
@@ -64,6 +70,25 @@ public class App extends JFrame {
             leftChooserLabel.setText("Choose file");
         }
     }
+
+    private boolean STGEncryp(File input, String text) {
+        Steganography steganography = new Steganography();
+        String ext;
+        if(input.getName().toLowerCase().endsWith("png")) {
+            ext = "png";
+        } else {
+            ext = "jpg";
+        }
+        return steganography.encode(input.getPath().substring(0, input.getPath().lastIndexOf(File.separator))
+                , input.getName().substring(0, input.getName().lastIndexOf("."))
+                , ext, "Encrypted", text);
+    }
+
+    private String STGDecrypt(File input) {
+        Steganography steganography = new Steganography();
+        return steganography.decode(input.getPath(), input.getName());
+    }
+
 
     private boolean LSBEncrypt(File input, String text) {
         LSB lsb = new LSB();
@@ -126,24 +151,45 @@ public class App extends JFrame {
             return;
         }
 
-        if(choosedEncMethod.getSelectedItem().equals("LSB")) {
+        String ext;
+        if(leftFile.getName().toLowerCase().endsWith("png")) {
+            if(!STGEncryp(leftFile, editorPaneLeft.getText())) return;
+            output = new File("temp.png");
+            ext = "png";
+        } else if(choosedEncMethod.getSelectedItem().equals("LSB")) {
             if(!LSBEncrypt(leftFile, editorPaneLeft.getText())) return;
+            output = new File("temp.gif");
+            ext = "gif";
         } else {
-            if(!EPEncrypt(leftFile, editorPaneLeft.getText())) return;
+            JOptionPane.showMessageDialog(null, "Maybe next time.");
+            return;
         }
+
 
         JFileChooser fileSaver = new JFileChooser();
-        fileSaver.setSelectedFile(new File("Encrypted.gif"));
-        fileSaver.showSaveDialog(null);
 
-        output.renameTo(fileSaver.getSelectedFile());
-        try {
-            Files.copy(output.toPath(), fileSaver.getSelectedFile().toPath());
-        } catch (IOException err) {
-            JOptionPane.showMessageDialog(null, err);
+        if(leftFile.getName().toLowerCase().endsWith("gif")) {
+            fileSaver.setSelectedFile(new File("Encrypted.gif"));
+        } else if(leftFile.getName().toLowerCase().endsWith("png")) {
+            fileSaver.setSelectedFile(new File("Encrypted.png"));
+        } else if(leftFile.getName().toLowerCase().endsWith("jpg") ||
+                    leftFile.getName().toLowerCase().endsWith("jpeg")) {
+            fileSaver.setSelectedFile(new File("Encrypted.png"));
         }
 
-        output.renameTo(new File("temp.gif"));
+//        fileSaver.showSaveDialog(null);
+//
+//        output.renameTo(fileSaver.getSelectedFile());
+//        try {
+//            Files.copy(output.toPath(), fileSaver.getSelectedFile().toPath());
+//        } catch (IOException err) {
+//            System.out.println(err);
+//        }
+//        if(ext.equals("gif")) {
+//            output.renameTo(new File("temp.gif"));
+//        }else {
+//            output.renameTo(new File("temp.png"));
+//        }
         editorPaneLeft.setText("");
         leftChooserLabel.setText("Choose file");
         leftFile = null;
@@ -254,11 +300,16 @@ public class App extends JFrame {
 
     private void Choose_rightActionPerformed(ActionEvent e) {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Gifs", "gif"));
 
         if(fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             rightFile = fileChooser.getSelectedFile();
             String curText = rightFile.getName();
+            if(!curText.endsWith(".gif") && !curText.endsWith(".png")
+                    && !curText.endsWith(".jpg") && !curText.endsWith(".jpeg")) {
+                rightFile = null;
+                rightChooserLabel.setText("Choose file");
+                return;
+            }
             curText = stringShortener(curText);
             rightChooserLabel.setText(curText);
         } else {
@@ -273,10 +324,16 @@ public class App extends JFrame {
             return;
         }
 
+        if(rightFile.getName().toLowerCase().endsWith("png")) {
+            resultArea.setText(STGDecrypt(rightFile));
+            return;
+        }
+
         if(choosedDecMethod.getSelectedItem().equals("LSB")) {
             resultArea.setText(LSBDecrypt(rightFile));
         } else {
-            resultArea.setText(EPDecrypt(rightFile));
+            JOptionPane.showMessageDialog(null, "mnogo hochesh");
+            return;
         }
     }
 
